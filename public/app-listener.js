@@ -237,14 +237,16 @@ function stopDebugger() {
     window.removeEventListener('hashchange', handleHasChangeEvents)
     const messageContainer = document.getElementById('app-debugger-messages')
     messageContainer.remove();
+
     const allIframeWrappers = document.getElementsByClassName('iframeWrapper');
+    const wrappers = []
     for (const wrapper of allIframeWrappers) {
-      console.log('WRAPPER',wrapper);
       const innerIframe = wrapper.children[0]
       const outerContainer = wrapper.parentElement
       outerContainer.appendChild(innerIframe)
-      wrapper.remove()
+      wrappers.push(wrapper)
     }
+    wrappers.forEach(wrapper => wrapper.remove())
   }
 }
 
@@ -259,6 +261,7 @@ chrome.storage.onChanged.addListener(function (changes, namespace) {
 const acceptedHosts = ["app.contentful.com", "app.flinkly.com"]
 
 if (acceptedHosts.includes(window.location.hostname)) {
+  chrome.storage.sync.set({ debuggerStatus: 'on' });
   startDebugger()
 }
 
