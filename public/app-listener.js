@@ -1,4 +1,4 @@
-const stylez = `
+window.stylez = `
   .container {
     padding: 10px;
     width: 500px;
@@ -34,16 +34,15 @@ const stylez = `
   .iframeWrapper::before {
     position: absolute;
     right: 0;
+    top: 14px
     content: attr(data-info-text);
     color: white;
     font-size: 10px;
-    margin-top: -18px;
     line-height: 12px;
     padding: 2px 6px;
     height: 14px;
     background: #BF3045;
-    border-top-left-radius: 4px;
-    border-top-right-radius: 4px;
+    border-bottom-left-radius: 4px;
   }
   
   .iframeWrapper {
@@ -66,14 +65,16 @@ const stylez = `
   }
 `
 
-const getContainerHtml = () => `
+function getContainerHtml() {
+  return `
   <div id="app-debugger" class="container">
    <header>Messages from apps:</header>
    <ul id="app-debugger-messages" class="messages"></ul>
   </div>
-`
+`;
+}
 
-const getEventHtml = (method, id, params) => {
+function getEventHtml(method, id, params) {
   const timestamp = Date.now()
   return `
     <li class="event">
@@ -148,13 +149,15 @@ async function wrapIframe(iframe) {
     iframeWrapper.className = 'iframeWrapper'
     iframeWrapper.dataset.definitionId = definitionId
     iframeWrapper.dataset.location = location
+    iframeWrapper.offsetHeight = iframe.offsetHeight
+    iframeWrapper.style.height = iframe.offsetHeight + "px"
     iframeParent.appendChild(iframeWrapper)
     iframeWrapper.appendChild(iframe)
     iframeWrapper.dataset.infoText = `definition: ${definitionId}`
-    const appDefinition = await getAppName(definitionId)
-    if (appDefinition.name) {
-      iframeWrapper.dataset.infoText = `name: ${appDefinition.name}  definition: ${definitionId}`
-    }
+    // const appDefinition = await getAppName(definitionId)
+    // if (appDefinition.name) {
+    //   iframeWrapper.dataset.infoText = `name: ${appDefinition.name}  definition: ${definitionId}`
+    // }
   }
 }
 
@@ -191,7 +194,7 @@ async function getAppName(defId) {
   const accessToken = sessionStorage.token;
   const space = await window.fetch(`https://api.contentful.com/spaces/${spaceId}`, {
     "headers": {
-      "authorization": `Bearer OWd705kLDJFsAxFL22bhfeR5jXlhsNdGZzxnS-iqIxg`,
+      "authorization": `Bearer ${accessToken}`,
     },
   }).then(response => response.json())
 
@@ -199,7 +202,7 @@ async function getAppName(defId) {
 
   return window.fetch(`https://api.contentful.com/organizations/${orgId}/app_definitions/${defId}`, {
     "headers": {
-      "authorization": `Bearer OWd705kLDJFsAxFL22bhfeR5jXlhsNdGZzxnS-iqIxg`,
+      "authorization": `Bearer ${accessToken}`,
     },
   }).then(response => response.json())
 }
@@ -213,17 +216,20 @@ function initMessageEventListener() {
 
 function renderMessageChannel() {
   container.innerHTML = getContainerHtml()
-  const styleTag = document.createElement('style')
+  let styleTag = document.getElementById('ctlf-extension-styles')
+  if (styleTag) return
+  styleTag = document.createElement('style')
+  styleTag.id = 'ctlf-extension-styles'
   document.head.append(styleTag);
-  styleTag.textContent = stylez;
+  styleTag.textContent = window.stylez;
   document.body.appendChild(container)
 }
 
-let debuggerStatus = 'off'
+window.debuggerStatus = 'off'
 
 function startDebugger() {
-  if (debuggerStatus === 'off') {
-    debuggerStatus = 'on'
+  if (window.debuggerStatus === 'off') {
+    window.debuggerStatus = 'on'
     renderMessageChannel()
     initMessageEventListener()
     configureIframe()
@@ -231,8 +237,8 @@ function startDebugger() {
 }
 
 function stopDebugger() {
-  if (debuggerStatus === 'on') {
-    debuggerStatus = 'off'
+  if (window.debuggerStatus === 'on') {
+    window.debuggerStatus = 'off'
     window.removeEventListener('message', handleMessageEvents)
     window.removeEventListener('hashchange', handleHasChangeEvents)
     const messageContainer = document.getElementById('app-debugger-messages')
@@ -261,8 +267,7 @@ chrome.storage.onChanged.addListener(function (changes, namespace) {
 const acceptedHosts = ["app.contentful.com", "app.flinkly.com"]
 
 if (acceptedHosts.includes(window.location.hostname)) {
-  chrome.storage.sync.set({ debuggerStatus: 'on' });
-  startDebugger()
+  chrome.storage.sync.set({ debuggerStatus: 'off' });
 }
 
 

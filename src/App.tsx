@@ -1,7 +1,6 @@
 import React, {useEffect, useState} from "react";
 import tokens from '@contentful/forma-36-tokens';
 import styled from "styled-components";
-import {Button, Heading, SectionHeading} from "@contentful/forma-36-react-components";
 
 const Container = styled.div`
   min-width: 200px;
@@ -9,37 +8,34 @@ const Container = styled.div`
 `
 
 function App() {
-  const [status, setStatus] = useState(null)
+  const [status, setStatus] = useState<string>("off")
 
-  const onActivationChange = (e: any) => {
-    chrome.storage.sync.set({ debuggerStatus: e.target.value });
+  const onActivationChange = () => {
+    const newVal = status === "off" ? "on" : "off";
+    setStatus(newVal)
+    chrome.storage.sync.set({ debuggerStatus: newVal });
   }
 
+  // useEffect(() => {
+  //   chrome.storage.onChanged.addListener(function (changes, namespace) {
+  //     setStatus(changes.debuggerStatus.newValue)
+  //   });
+  // }, [])
+  //
   useEffect(() => {
-    chrome.storage.onChanged.addListener(function (changes, namespace) {
-      setStatus(changes.debuggerStatus.newValue)
-    });
-  }, [])
-
-  chrome.storage.sync.get(['debuggerStatus'], function(result) {
-    console.log(result)
-  });
-
-  useEffect(() => {
-    chrome.storage.sync.get(['debuggerStatus'], function(result) {
-      console.log(result)
-      setStatus(result.debuggerStatus)
-    });
-  }, [])
+   chrome.storage.sync.get(['debuggerStatus'], function(result) {
+       console.log(result)
+       setStatus(result.debuggerStatus)
+     });
+   }, [])
 
 
   return (
     <Container>
       <h2>Debugger Activated:</h2>
-      <input onChange={onActivationChange} type="radio" id="debugger-activated" name="activation" value="on" checked={status === 'on'} />
-      <label htmlFor="contactChoice1">On</label>
-      <input onChange={onActivationChange} type="radio" id="debugger-deactivated" name="activation" value="off" checked={status === 'off'} />
-      <label htmlFor="contactChoice1">Off</label>
+      <button onClick={onActivationChange}>{status === 'on' ? 'Deactivate' : 'Activate'}</button>
+
+
     </Container>
   );
 }
