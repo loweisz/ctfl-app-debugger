@@ -6,6 +6,7 @@ window.stylez = `
     left: 0;
     bottom: 0;
     background: white;
+    border-top-right-radius: 12px;
     box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
   }
   .messages {
@@ -154,10 +155,10 @@ async function wrapIframe(iframe) {
     iframeParent.appendChild(iframeWrapper)
     iframeWrapper.appendChild(iframe)
     iframeWrapper.dataset.infoText = `definition: ${definitionId}`
-    // const appDefinition = await getAppName(definitionId)
-    // if (appDefinition.name) {
-    //   iframeWrapper.dataset.infoText = `name: ${appDefinition.name}  definition: ${definitionId}`
-    // }
+    const appDefinition = await getAppName(definitionId)
+    if (appDefinition.name) {
+      iframeWrapper.dataset.infoText = `name: ${appDefinition.name}  definition: ${definitionId}`
+    }
   }
 }
 
